@@ -56,7 +56,7 @@ jobs:
       - name: Run Pytest Tests in Parallel
         run: pytest -n auto test_damncrud.py
 
-dast_scan:
+  dast_scan:  # Indentasi sejajar dengan `test`
     needs: test
     runs-on: ubuntu-latest
 
