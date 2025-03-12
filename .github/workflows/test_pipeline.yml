@@ -30,10 +30,7 @@ jobs:
           done
 
       - name: Install Python dependencies
-        run: pip install pytest pytest-xdist selenium
-
-      - name: Install webdriver_manager
-        run: pip install webdriver_manager
+        run: pip install pytest pytest-xdist selenium webdriver_manager pymysql
 
       - name: Run tests in parallel
         run: pytest -n auto test_damncrud.py
@@ -43,5 +40,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        
       - name: Run ZAP Baseline Scan
-        run: docker run --rm -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://host.docker.internal:8000 -r zap_report.html
+        run: |
+          docker run --rm \
+            --user $(id -u):$(id -g) \
+            --add-host=host.docker.internal:host-gateway \
+            -v $(pwd):/zap/wrk \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://host.docker.internal:8000 -r zap_report.html
