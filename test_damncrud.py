@@ -17,7 +17,7 @@ time.sleep(5)
 conn = pymysql.connect(
     host="localhost",
     user="root",
-    password="",  # Sesuaikan dengan setup di aplikasi
+    password="root",  # Sesuaikan dengan setup di aplikasi
     database="damncrud"
 )
 cursor = conn.cursor()
