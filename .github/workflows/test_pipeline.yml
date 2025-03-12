@@ -33,13 +33,12 @@ jobs:
         run: pip install pytest pytest-xdist selenium
 
       - name: Run tests in parallel
-        run: pytest -n auto tests/
+        run: pytest -n auto test_damncrud.py
 
   dast_scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Run ZAP Baseline Scan
-        run: docker run -v $(pwd):/zap/wrk -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8000 -r report.html
+        run: docker run --rm -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://localhost:8000 -r report.html
