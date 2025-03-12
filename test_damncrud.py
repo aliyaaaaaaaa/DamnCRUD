@@ -170,7 +170,7 @@ class TestDamnCrud:
 
         # Unggah gambar baru
         upload_field = wait.until(EC.visibility_of_element_located((By.NAME, "image")))
-        upload_field.send_keys(os.path.abspath("C:/Users/Hana/Pictures/aliya.jpg"))
+        upload_field.send_keys(os.path.abspath("image/aliya.jpg"))
 
         submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']")))
         submit_button.click()
