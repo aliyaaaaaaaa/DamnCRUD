@@ -43,10 +43,3 @@ jobs:
 
       - name: Run ZAP Baseline Scan
         run: docker run -v $(pwd):/zap/wrk -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8000 -r report.html
-
-    steps:
-      - name: Run OWASP ZAP Scan
-        uses: zaproxy/action-full-scan@v0.8.0
-        with:
-          target: "http://localhost:8000"
-          fail_action: true
