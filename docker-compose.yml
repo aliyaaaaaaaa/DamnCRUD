@@ -13,8 +13,6 @@ services:
       DB_USER: root
       DB_PASSWORD: root
       DB_NAME: damncrud
-    env_file:
-      - .env
     volumes:
       - .:/var/www/html
     command: ["php", "-S", "0.0.0.0:8000", "-t", "public"]
@@ -33,3 +31,4 @@ services:
 
 volumes:
   db_data:
+
