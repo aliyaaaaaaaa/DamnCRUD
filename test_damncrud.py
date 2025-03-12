@@ -7,6 +7,31 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import os
+import time
+import pymysql
+
+# Tunggu hingga database siap
+time.sleep(5)
+
+# Koneksi ke MySQL (sesuaikan dengan kredensial yang digunakan di aplikasi)
+conn = pymysql.connect(
+    host="localhost",
+    user="root",
+    password="",  # Sesuaikan dengan setup di aplikasi
+    database="damncrud"
+)
+cursor = conn.cursor()
+
+# Import database jika belum ada
+sql_file = "db/damncrud.sql"
+with open(sql_file, "r") as f:
+    sql_statements = f.read()
+cursor.execute(sql_statements)
+conn.commit()
+
+cursor.close()
+conn.close()
+
 
 @pytest.fixture(scope="class")
 def setup(request):
