@@ -1,0 +1,47 @@
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      web:
+        image: php:apache
+        ports:
+          - 80:80
+        options: >-
+          --health-cmd "curl --silent --fail http://localhost" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: damncrud
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --host=localhost --user=root --password=root"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          pip install pytest pytest-xdist selenium webdriver-manager pymysql
+
+      - name: Import Database
+        run: |
+          mysql -h 127.0.0.1 -u root -proot damncrud < db/damncrud.sql
+
+      - name: Run Pytest Tests in Parallel
+        run: pytest -n auto test_damncrud.py
