@@ -16,9 +16,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Docker Compose
-        run: sudo apt-get update && sudo apt-get install -y docker-compose
-
       - name: Set up Docker Compose
         run: docker-compose up -d
 
@@ -26,20 +23,36 @@ jobs:
         run: |
           echo "Waiting for MySQL to start..."
           until docker exec my_db mysqladmin ping --host=db --silent; do
-            sleep 1
+            sleep 2
           done
+          echo "MySQL is ready!"
 
-      - name: Install Python dependencies
-        run: pip install pytest pytest-xdist selenium webdriver_manager pymysql
+      - name: Import Database
+        run: |
+          docker exec -i my_db mysql -u root -proot damncrud < db/damncrud.sql
 
-      - name: Run tests in parallel
-        run: pytest -n auto test_damncrud.py
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          pip install pytest pytest-xdist selenium webdriver-manager pymysql
+
+      - name: Run Pytest Tests in Parallel
+        run: |
+          sleep 10
+          curl -v http://localhost:8000 || echo "Web service belum siap"
+          docker exec my_app pytest -n auto test_damncrud.py -v
 
   dast_scan:
+    needs: test
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        
-      - name: Run ZAP Baseline Scan
-        run: docker run --rm -u root ghcr.io/zaproxy/zaproxy:stable
+      - name: Run OWASP ZAP Scan
+        uses: zaproxy/action-full-scan@v0.8.0
+        with:
+          target: "http://localhost:8000"
+          fail_action: true
