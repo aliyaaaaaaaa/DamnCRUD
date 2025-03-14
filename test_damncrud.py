@@ -44,8 +44,8 @@ with open(sql_file, "r") as f:
 
 conn.commit()
 
-cursor.close()
-conn.close()
+#cursor.close()
+#conn.close()
 
 
 @pytest.fixture(scope="class")
@@ -229,3 +229,4 @@ class TestDamnCrud:
         # Verifikasi tidak ada pesan error
         error_messages = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Ekstensi tidak diijinkan')]")
         assert len(error_messages) == 0
+
