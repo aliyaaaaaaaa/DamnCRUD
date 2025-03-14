@@ -61,7 +61,10 @@ def setup(request):
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.maximize_window()
 
-    base_url = "http://localhost/damncrud"
+    # Gunakan hostname sesuai dengan container Docker dan port yang diekspos
+    base_url = "http://my_app"  # Nama container web di docker-compose
+    # Alternatif lain sesuai konfigurasi Docker: http://localhost:8000
+    # Atau jika menggunakan container name dari docker-compose: http://my_app
     driver.get(f"{base_url}/login.php")
 
     request.cls.driver = driver
