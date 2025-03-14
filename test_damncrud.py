@@ -25,8 +25,23 @@ cursor = conn.cursor()
 # Import database jika belum ada
 sql_file = "db/damncrud.sql"
 with open(sql_file, "r") as f:
-    sql_statements = f.read()
-cursor.execute(sql_statements)
+    # Membaca seluruh file
+    sql_content = f.read()
+    
+    # Membagi berdasarkan titik koma diikuti oleh baris baru (memisahkan statements)
+    statements = sql_content.split(';\n')
+    
+    # Mengeksekusi setiap statement secara terpisah
+    for statement in statements:
+        # Lewati statement kosong atau hanya berisi komentar
+        if statement.strip() and not statement.strip().startswith('--') and not statement.strip().startswith('/*'):
+            try:
+                cursor.execute(statement.strip() + ';')
+            except Exception as e:
+                print(f"Error executing statement: {e}")
+                # Lanjutkan meskipun ada error pada statement tertentu
+                continue
+
 conn.commit()
 
 cursor.close()
