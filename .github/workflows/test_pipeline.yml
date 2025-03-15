@@ -50,18 +50,16 @@ jobs:
       - name: Wait for Web App to be ready
         run: |
           echo "Waiting for the web application to be ready..."
-          sleep 10
-          docker exec my_app curl -s http://localhost:8000 || echo "Web service is not ready yet, but continuing..."
+          until curl -s http://localhost:8000; do
+            sleep 2
+            echo "Still waiting for the web application..."
+          done
+          echo "Web application is ready!"
 
       - name: Run Selenium Tests
         run: |
           docker exec -w /var/www/html my_app python3 -m pytest -n auto test_damncrud.py -v
 
-  dast_scan:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Run OWASP ZAP Scan
         uses: zaproxy/action-full-scan@v0.8.0
         with:
