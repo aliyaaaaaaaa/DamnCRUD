@@ -28,6 +28,14 @@ jobs:
           docker ps -a
           docker logs my_app
 
+      - name: Ensure Container is Running
+        run: |
+          if ! docker ps | grep -q my_app; then
+            echo "Container my_app is not running. Starting it..."
+            docker start my_app || docker compose up -d my_app
+            sleep 5
+          fi
+
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to start..."
