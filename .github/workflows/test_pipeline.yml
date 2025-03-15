@@ -20,21 +20,34 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y docker-compose
 
       - name: Set up Docker Compose
-        run: docker-compose up -d
-
-      - name: Check Container Status
         run: |
-          echo "Checking container status..."
+          docker compose up -d
           docker ps -a
-          docker logs my_app
+          
+          # Pastikan container my_app tetap berjalan
+          docker exec my_app tail -f /dev/null &
+          
+          # Install Chrome dan dependensi
+          docker exec my_app apt-get update
+          docker exec my_app apt-get install -y wget gnupg
+          docker exec my_app wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | docker exec -i my_app apt-key add -
+          docker exec my_app bash -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
+          docker exec my_app apt-get update
+          docker exec my_app apt-get install -y google-chrome-stable
 
-      - name: Ensure Container is Running
-        run: |
-          if ! docker ps | grep -q my_app; then
-            echo "Container my_app is not running. Starting it..."
-            docker start my_app || docker compose up -d my_app
-            sleep 5
-          fi
+      #- name: Check Container Status
+       # run: |
+        #  echo "Checking container status..."
+         # docker ps -a
+          #docker logs my_app
+
+     # - name: Ensure Container is Running
+      #  run: |
+       #   if ! docker ps | grep -q my_app; then
+        #    echo "Container my_app is not running. Starting it..."
+         #   docker start my_app || docker compose up -d my_app
+          #  sleep 5
+          #fi
 
       - name: Wait for MySQL to be ready
         run: |
