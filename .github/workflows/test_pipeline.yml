@@ -22,6 +22,12 @@ jobs:
       - name: Set up Docker Compose
         run: docker-compose up -d
 
+      - name: Check Container Status
+        run: |
+          echo "Checking container status..."
+          docker ps -a
+          docker logs my_app
+
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to start..."
