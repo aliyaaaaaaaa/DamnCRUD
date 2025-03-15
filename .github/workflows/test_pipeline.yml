@@ -22,10 +22,12 @@ jobs:
       - name: Set up Docker Compose
         run: |
           docker compose up -d
-          docker ps -a
           
           # Pastikan container my_app tetap berjalan
-          docker exec my_app tail -f /dev/null &
+          #docker exec my_app tail -f /dev/null &
+          docker exec my_app nohup php -S 0.0.0.0:8000 -t /var/www/html &
+
+          docker ps -a
           
           # Install Chrome dan dependensi
           docker exec my_app apt-get update
