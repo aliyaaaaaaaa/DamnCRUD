@@ -1,21 +1,29 @@
 # Gunakan image PHP dengan Apache
-FROM php:8.2-apache
+FROM php:7.4-apache
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zip \
+    unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd mysqli pdo pdo_mysql
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Salin semua file proyek ke dalam container
+# Copy application files
 COPY . .
 
 # Berikan izin yang diperlukan
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Aktifkan module yang diperlukan (jika ada)
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+# Expose port
+EXPOSE 8000
 
-# Expose port 80 untuk akses web
-EXPOSE 80
-
-# Jalankan Apache
+# Command to keep container running
 CMD ["apache2-foreground"]
+
