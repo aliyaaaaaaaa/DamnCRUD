@@ -26,4 +26,5 @@ EXPOSE 8000
 
 # Command to keep container running
 CMD ["apache2-foreground"]
+CMD ["tail", "-f", "/dev/null"]
 
