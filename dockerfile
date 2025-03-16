@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 # Konfigurasi Apache
 RUN a2enmod rewrite
-COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+# COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 # Set working directory
 WORKDIR /var/www/html
