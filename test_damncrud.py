@@ -62,7 +62,7 @@ def setup(request):
     driver.maximize_window()
 
     # Gunakan hostname sesuai dengan container Docker dan port yang diekspos
-    base_url = "http://localhost:8000"  # Nama container web di docker-compose
+    base_url = "http://my_app:8000"  # Nama container web di docker-compose
     # Alternatif lain sesuai konfigurasi Docker: http://localhost:8000
     # Atau jika menggunakan container name dari docker-compose: http://my_app
     driver.get(f"{base_url}/login.php")
