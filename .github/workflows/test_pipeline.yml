@@ -18,23 +18,6 @@ jobs:
 
       - name: Install Docker Compose
         run: sudo apt-get update && sudo apt-get install -y docker-compose
-      
-      # Tambahkan langkah untuk membuat apache-config.conf jika diperlukan
-      - name: Create Apache Config
-        run: |
-          echo '<VirtualHost *:80>
-              ServerAdmin webmaster@localhost
-              DocumentRoot /var/www/html
-              
-              <Directory /var/www/html>
-                  Options Indexes FollowSymLinks
-                  AllowOverride All
-                  Require all granted
-              </Directory>
-              
-              ErrorLog ${APACHE_LOG_DIR}/error.log
-              CustomLog ${APACHE_LOG_DIR}/access.log combined
-          </VirtualHost>' > apache-config.conf
 
       - name: Set up Docker Compose
         run: |
@@ -42,7 +25,7 @@ jobs:
           
           # Pastikan container my_app tetap berjalan
           #docker exec my_app tail -f /dev/null &
-          docker exec my_app nohup php -S 0.0.0.0:8000 -t /var/www/html &
+          #docker exec my_app nohup php -S 0.0.0.0:8000 -t /var/www/html &
 
           docker ps -a
           
@@ -53,20 +36,6 @@ jobs:
           docker exec my_app bash -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
           docker exec my_app apt-get update
           docker exec my_app apt-get install -y google-chrome-stable
-
-      #- name: Check Container Status
-       # run: |
-        #  echo "Checking container status..."
-         # docker ps -a
-          #docker logs my_app
-
-     # - name: Ensure Container is Running
-      #  run: |
-       #   if ! docker ps | grep -q my_app; then
-        #    echo "Container my_app is not running. Starting it..."
-         #   docker start my_app || docker compose up -d my_app
-          #  sleep 5
-          #fi
 
       - name: Wait for MySQL to be ready
         run: |
@@ -86,15 +55,24 @@ jobs:
         run: |
           docker exec my_app apt-get install -y python3 python3-pip
           docker exec my_app pip3 install pytest pytest-xdist selenium webdriver-manager pymysql
-
+          
       - name: Wait for Web App to be ready
         run: |
           echo "Waiting for the web application to be ready..."
-          until curl -s http://localhost:8000; do
+          until docker exec my_app curl -s http://localhost:8000; do
             sleep 2
             echo "Still waiting for the web application..."
           done
           echo "Web application is ready!"
+
+      - name: Check my_app and db connection
+        run: |
+          echo "Checking connection between my_app and db..."
+          until docker exec my_app mysql -h db -u root -proot -e "SELECT 1" --silent; do
+            sleep 2
+            echo "Still waiting for the database connection..."
+          done
+          echo "Database connection successful!"
           
       - name: Checking active docker container
         run: docker ps
