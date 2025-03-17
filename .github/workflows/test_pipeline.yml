@@ -68,7 +68,7 @@ jobs:
       - name: Check my_app and db connection
         run: |
           echo "Checking connection between my_app and db..."
-          until docker exec my_app mysql -h db -u root -proot -e "SELECT 1" --silent; do
+          until docker exec my_db mysql -h db -u root -proot -e "SELECT 1" --silent; do
             sleep 2
             echo "Still waiting for the database connection..."
           done
