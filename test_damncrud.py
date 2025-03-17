@@ -9,6 +9,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os
 import time
 import pymysql
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Tunggu hingga database siap
 time.sleep(5)
@@ -82,44 +85,30 @@ class TestDamnCrud:
         """ ✅ Test Login sebagai Admin """
         wait = WebDriverWait(self.driver, 20)
         
-        # Tambahkan delay dan logging untuk debugging
-        print("Halaman saat ini:", self.driver.current_url)
+        logging.info("Halaman saat ini: %s", self.driver.current_url)
         time.sleep(2)
         
-        username_field = wait.until(EC.visibility_of_element_located((By.NAME, "username")))
-        username_field.send_keys("admin")
-        
-        password_field = wait.until(EC.visibility_of_element_located((By.NAME, "password")))
-        password_field.send_keys("nimda666!")
-        
-        # Tambahkan screenshot untuk debugging
-        self.driver.save_screenshot("/var/www/html/login_before_click.png")
-        
-        login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']")))
-        
-        for attempt in range(3):
-            try:
-                # Attempt login
-                login_button.click()
-                break
-            except Exception as e:
-                print(f"Attempt {attempt + 1} failed: {e}")
-                time.sleep(2)
-        
-        # Tambahkan delay setelah klik
-        time.sleep(3)
-        print("URL setelah login:", self.driver.current_url)
-        self.driver.save_screenshot("/var/www/html/after_login.png")
-
-        # Verifikasi login berhasil dengan pendekatan yang lebih fleksibel
         try:
-            # Coba cari elemen Dashboard
-            dashboard = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Dashboard') or contains(text(), 'Howdy')]")))
-            print("Dashboard ditemukan:", dashboard.text)
-        except Exception as e:
-            print("Error saat mencari Dashboard:", str(e))
-            print("HTML halaman saat ini:", self.driver.page_source)
+            username_field = wait.until(EC.visibility_of_element_located((By.NAME, "username")))
+            username_field.send_keys("admin")
             
+            password_field = wait.until(EC.visibility_of_element_located((By.NAME, "password")))
+            password_field.send_keys("nimda666!")
+            
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']")))
+            login_button.click()
+            
+            time.sleep(3)
+            logging.info("URL setelah login: %s", self.driver.current_url)
+            
+            dashboard = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Dashboard') or contains(text(), 'Howdy')]")))
+            logging.info("Dashboard ditemukan: %s", dashboard.text)
+            
+        except Exception as e:
+            logging.error("Error saat login: %s", str(e))
+            logging.error("HTML halaman saat ini: %s", self.driver.page_source)
+            pytest.fail("Login gagal")
+        
         assert "index.php" in self.driver.current_url.lower()
         
         # Tambahkan delay sebelum tes berikutnya
@@ -271,4 +260,3 @@ class TestDamnCrud:
         # Verifikasi tidak ada pesan error
         error_messages = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Ekstensi tidak diijinkan')]")
         assert len(error_messages) == 0
-
