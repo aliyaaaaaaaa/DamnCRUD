@@ -95,6 +95,9 @@ jobs:
             echo "Still waiting for the web application..."
           done
           echo "Web application is ready!"
+          
+      - name: Checking active docker container
+        run: docker ps
 
       - name: Run Selenium Tests
         run: |
