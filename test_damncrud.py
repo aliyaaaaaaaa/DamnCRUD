@@ -16,63 +16,24 @@ logging.basicConfig(level=logging.INFO)
 # Tunggu hingga database siap
 time.sleep(5)
 
-# Koneksi ke MySQL (sesuaikan dengan kredensial yang digunakan di aplikasi)
-conn = pymysql.connect(
-    host="my_db",
-    user="root",
-    password="root",  # Sesuaikan dengan setup di aplikasi
-    database="damncrud"
-)
-cursor = conn.cursor()
-
-# Import database jika belum ada
-sql_file = "db/damncrud.sql"
-with open(sql_file, "r") as f:
-    # Membaca seluruh file
-    sql_content = f.read()
-    
-    # Membagi berdasarkan titik koma diikuti oleh baris baru (memisahkan statements)
-    statements = sql_content.split(';\n')
-    
-    # Mengeksekusi setiap statement secara terpisah
-    for statement in statements:
-        # Lewati statement kosong atau hanya berisi komentar
-        if statement.strip() and not statement.strip().startswith('--') and not statement.strip().startswith('/*'):
-            try:
-                cursor.execute(statement.strip() + ';')
-            except Exception as e:
-                print(f"Error executing statement: {e}")
-                # Lanjutkan meskipun ada error pada statement tertentu
-                continue
-
-conn.commit()
-
-#cursor.close()
-#conn.close()
-
-
 @pytest.fixture(scope="class")
 def setup(request):
     """ Setup Selenium WebDriver untuk pengujian dengan Chrome """
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Diperlukan untuk CI/CD
+    chrome_options.add_argument("--headless")  # Headless untuk CI/CD
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--remote-debugging-port=9222")  # Tambahan untuk debugging
 
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    # Gunakan ChromeDriver dari container Docker, bukan ChromeDriverManager
+    driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver", options=chrome_options)
     driver.maximize_window()
 
-    # Ubah base_url untuk menggunakan nama container Docker
-    # base_url = "http://localhost:8000"  # Nama container web di docker-compose
-    base_url = "http://my_app:8000"  # Gunakan nama container dari docker-compose
-    
-    # Akses halaman login
+    # Base URL menggunakan nama service Docker
+    base_url = "http://my_app:8000"  # Pastikan ini sesuai dengan docker-compose
     driver.get(f"{base_url}/login.php")
-    
-    # Tambahkan delay untuk memastikan halaman dimuat
-    time.sleep(2)
+    time.sleep(2)  # Pastikan halaman sudah termuat
 
     request.cls.driver = driver
     request.cls.base_url = base_url
