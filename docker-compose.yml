@@ -29,8 +29,6 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
-    volumes:
-      - db_data:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -proot --silent"]
       interval: 10s
