@@ -27,7 +27,8 @@ def setup(request):
     chrome_options.add_argument("--remote-debugging-port=9222")  # Tambahan untuk debugging
 
     # Gunakan ChromeDriver dari container Docker, bukan ChromeDriverManager
-    driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver", options=chrome_options)
+    service = Service("/usr/bin/chromedriver")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.maximize_window()
 
     # Base URL menggunakan nama service Docker
