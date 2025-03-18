@@ -59,7 +59,7 @@ jobs:
       - name: Wait for Web App to be ready
         run: |
           echo "Waiting for the web application to be ready..."
-          until docker exec my_app curl -s http://localhost:8000; do
+          until docker exec my_app curl -s http://my_app:8000; do
             sleep 2
             echo "Still waiting for the web application..."
           done
@@ -68,7 +68,7 @@ jobs:
       - name: Check my_app and db connection
         run: |
           echo "Checking connection between my_app and db..."
-          until docker exec my_db mysql -h db -u root -proot -e "SELECT 1" --silent; do
+          until docker exec my_app mysql -h db -u root -proot -e "SELECT 1" --silent; do
             sleep 2
             echo "Still waiting for the database connection..."
           done
@@ -84,6 +84,6 @@ jobs:
       - name: Run OWASP ZAP Scan
         uses: zaproxy/action-full-scan@v0.8.0
         with:
-          target: "http://localhost:8000"
+          target: "http://my_app:8000"
           fail_action: true
 
