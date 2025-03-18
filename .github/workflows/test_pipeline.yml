@@ -84,6 +84,8 @@ jobs:
         run: |
           docker ps
           docker exec my_app uname -m
+          docker exec my_app which chromedriver
+          docker exec my_app chromedriver --version
 
       - name: Run Selenium Tests
         run: |
