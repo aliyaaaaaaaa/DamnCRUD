@@ -1,0 +1,101 @@
+name: UAS Testing
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    name: Functional Test
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout the Repo
+          uses: actions/checkout@v4
+
+        - name: Create isolated network
+          run: docker network create --driver bridge isolated
+
+        - name: Deploy AUT
+          run: docker build -t uas .
+
+        - name: Run AUT
+          run: docker run --network=isolated -p 80:80 --name docker-apache -t -d uas:latest
+
+        - name: Get AUT URL
+          run: |
+            URL=http://$(ip -f inet -o addr show docker0 | awk '{print $4}' | cut -d '/' -f 1)
+            echo "URL=$URL" >> $GITHUB_ENV
+
+        - name: Check AUT URL
+          run: curl ${{ env.URL }}
+
+        - name: Selenium Preparation
+          run: docker run --network=isolated -d -p 4444:4444 -p 7900:7900 -v /dev/shm:/dev/shm --name firefox-standalone selenium/standalone-firefox:latest
+
+        - name: DB Setup
+          run: docker run --network=isolated --name uas-db -e MYSQL_ROOT_PASSWORD=useruas -e MYSQL_DATABASE=uas -v ${{ github.workspace }}/db:/docker-entrypoint-initdb.d -d mysql:5.7
+
+        - name: DB Wait
+          run: sleep 10
+
+        - name: DB Exec
+          run: docker exec uas-db sh -c 'mysql -h localhost -uroot -puseruas uas < /docker-entrypoint-initdb.d/damncrud.sql'
+
+        - name: Wait for Selenium Hub
+          run: sh wait.sh
+
+        - name: Check Selenium Hub
+          run: curl http://localhost:4444/ui
+
+        - name: Install Selenium
+          run: pip install selenium
+
+        - name: Run Test Script
+          run: python testing.py ${{ env.URL }}
+          continue-on-error: true
+
+        - name: Authenticate and Get Session Cookie
+          run: |
+            curl -c cookies.txt -d "username=admin&password=nimda666!" ${{ env.URL }}/login.php
+            SESSION_COOKIE=$(grep PHPSESSID cookies.txt | awk '{print $7}')
+            echo "SESSION_COOKIE=$SESSION_COOKIE" >> $GITHUB_ENV
+
+        - name: Echo Session Cookie
+          run: |
+            echo "Session Cookie: ${{ env.SESSION_COOKIE }}"
+
+        - name: Run ZAP Spider
+          uses: zaproxy/action-baseline@v0.10.0
+          with:
+            target: ${{ env.URL }}
+            cmd_options: "-z '-config replacer.full_list(0).description=auth
+                             -config replacer.full_list(0).enabled=true
+                             -config replacer.full_list(0).matchtype=REQ_HEADER
+                             -config replacer.full_list(0).matchstr=Cookie
+                             -config replacer.full_list(0).replacement=PHPSESSID=${{ env.SESSION_COOKIE }}
+                             -config replacer.full_list(0).regex=false
+                             -config replacer.full_list(0).initiators=1,2,3,4,6,7'"
+          env:
+            ZAP_USER: root
+          continue-on-error: true
+          
+        - name: DAST with ZAP SCAN (Enhanced)
+          uses: zaproxy/action-full-scan@master
+          with:
+            target: ${{ env.URL }}
+            cmd_options: >
+              -z "-config replacer.full_list(0).description=auth
+                   -config replacer.full_list(0).enabled=true
+                   -config replacer.full_list(0).matchtype=REQ_HEADER
+                   -config replacer.full_list(0).matchstr=Cookie
+                   -config replacer.full_list(0).replacement=PHPSESSID=${{ env.SESSION_COOKIE }}
+                   -config replacer.full_list(0).regex=false
+                   -config replacer.full_list(0).initiators=1,2,3,4,6,7
+                   -config pscanrules.xss.enable=true
+                   -config activeScan.inputVectorTypes=1,2,3
+                   -config activeScan.maxScansInUI=5
+                   -config activeScan.policy=Default Policy"
+          continue-on-error: true
+
+        - name: Stop Docker
+          run: docker stop docker-apache
