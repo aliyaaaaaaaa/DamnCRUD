@@ -21,7 +21,9 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd mysqli pdo pdo_mysql
 
 # Install MySQL Client
-RUN apt-get update && apt-get install -y default-mysql-client
+RUN apt-get update && apt-get install -y wget gnupg default-mysql-client
+RUN wget -O /usr/bin/chromedriver https://chromedriver.storage.googleapis.com/$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip && \
+    chmod +x /usr/bin/chromedriver
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
