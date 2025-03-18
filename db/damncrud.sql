@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Dumping data for table damncrud.users: ~1 rows (approximately)
 INSERT INTO `users` (`id_user`, `username`, `password`) VALUES
-	(1, 'admin', '9feac9a05349e4ccc78fb9d9b4ab61b33f868c7f8b8acd56dc7303c1af0cb7ca');
+	(1, 'admin', 'nimda666!');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
